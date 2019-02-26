@@ -7,7 +7,7 @@ import (
 
 // Vec 3d vector
 type Vec struct {
-	x, y, z float64
+	X, Y, Z float64
 }
 
 // NewZero new zero vec
@@ -17,23 +17,23 @@ func NewZero() *Vec {
 
 // New new vec
 func New(x, y, z float64) *Vec {
-	return &Vec{x: x, y: y, z: z}
+	return &Vec{X: x, Y: y, Z: z}
 }
 
 // Copy copy one
 func (a *Vec) Copy() *Vec {
-	return &Vec{x: a.x, y: a.y, z: a.z}
+	return &Vec{X: a.X, Y: a.Y, Z: a.Z}
 }
 
 func (a *Vec) String() string {
-	return fmt.Sprintf("(%f, %f, %f)", a.x, a.y, a.z)
+	return fmt.Sprintf("(%f, %f, %f)", a.X, a.Y, a.Z)
 }
 
 // Add a + b
 func (a *Vec) Add(b *Vec) *Vec {
-	a.x += b.x
-	a.y += b.y
-	a.z += b.z
+	a.X += b.X
+	a.Y += b.Y
+	a.Z += b.Z
 	return a
 }
 
@@ -44,9 +44,9 @@ func Add(a, b *Vec) *Vec {
 
 // Sub a - b
 func (a *Vec) Sub(b *Vec) *Vec {
-	a.x -= b.x
-	a.y -= b.y
-	a.z -= b.z
+	a.X -= b.X
+	a.Y -= b.Y
+	a.Z -= b.Z
 	return a
 }
 
@@ -55,38 +55,38 @@ func Sub(a, b *Vec) *Vec {
 	return a.Copy().Sub(b)
 }
 
-// Mul (a.x * b.x, a.y * b.y, a.z * b.z)
+// Mul (a.X * b.X, a.Y * b.Y, a.Z * b.Z)
 func (a *Vec) Mul(b *Vec) *Vec {
-	a.x *= b.x
-	a.y *= b.y
-	a.z *= b.z
+	a.X *= b.X
+	a.Y *= b.Y
+	a.Z *= b.Z
 	return a
 }
 
-// Mul (a.x * b.x, a.y * b.y, a.z * b.z) (copy)
+// Mul (a.X * b.X, a.Y * b.Y, a.Z * b.Z) (copy)
 func Mul(a, b *Vec) *Vec {
 	return a.Copy().Mul(b)
 }
 
-// Mult (a.x * t, a.y * t, a.z * t)
+// Mult (a.X * t, a.Y * t, a.Z * t)
 func (a *Vec) Mult(t float64) *Vec {
-	a.x *= t
-	a.y *= t
-	a.z *= t
+	a.X *= t
+	a.Y *= t
+	a.Z *= t
 	return a
 }
 
-// Mult (a.x * t, a.y * t, a.z * t) (copy)
+// Mult (a.X * t, a.Y * t, a.Z * t) (copy)
 func Mult(a *Vec, t float64) *Vec {
 	return a.Copy().Mult(t)
 }
 
-// Dot a.x*b.x + a.y*b.y + a.z*b.z
+// Dot a.X*b.X + a.Y*b.Y + a.Z*b.Z
 func Dot(a, b *Vec) float64 {
-	return a.x*b.x + a.y*b.y + a.z*b.z
+	return a.X*b.X + a.Y*b.Y + a.Z*b.Z
 }
 
-// Dot a.x*b.x + a.y*b.y + a.z*b.z
+// Dot a.X*b.X + a.Y*b.Y + a.Z*b.Z
 func (a *Vec) Dot(b *Vec) float64 {
 	return Dot(a, b)
 }
@@ -114,9 +114,9 @@ func Norm(a *Vec) *Vec {
 // Cross cross (copy)
 func Cross(a, b *Vec) *Vec {
 	return &Vec{
-		x: a.y*b.z - a.z*b.y,
-		y: a.z*b.x - a.x*b.z,
-		z: a.x*b.y - a.y*b.x,
+		X: a.Y*b.Z - a.Z*b.Y,
+		Y: a.Z*b.X - a.X*b.Z,
+		Z: a.X*b.Y - a.Y*b.X,
 	}
 }
 
@@ -136,9 +136,9 @@ func clamp(x float64) float64 {
 
 // Clamp see smallpt
 func (a *Vec) Clamp() *Vec {
-	a.x = clamp(a.x)
-	a.y = clamp(a.y)
-	a.z = clamp(a.z)
+	a.X = clamp(a.X)
+	a.Y = clamp(a.Y)
+	a.Z = clamp(a.Z)
 	return a
 }
 
@@ -153,5 +153,5 @@ func toByte(x float64) byte {
 
 // PPM ppm format string
 func (a *Vec) PPM() string {
-	return fmt.Sprintf("%v %v %v ", toByte(a.x), toByte(a.y), toByte(a.z))
+	return fmt.Sprintf("%v %v %v ", toByte(a.X), toByte(a.Y), toByte(a.Z))
 }

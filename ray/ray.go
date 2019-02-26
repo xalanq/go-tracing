@@ -6,3 +6,8 @@ import "github.com/xalanq/go-smallpt/vec"
 type Ray struct {
 	Origin, Direct *vec.Vec
 }
+
+// New new one
+func New(origin, direct *vec.Vec) *Ray {
+	return &Ray{Origin: origin, Direct: direct}
+}

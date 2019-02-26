@@ -39,8 +39,9 @@ func ToByte(x float64) byte {
 func (a *Pic) SavePPM(filename string) {
 	file, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	writer := bufio.NewWriter(file)
+	writer.WriteString(fmt.Sprintf("P3\n%d %d\n255\n", a.W, a.H))
 	for _, c := range a.C {
 		writer.WriteString(fmt.Sprintf("%v %v %v ", ToByte(c.X), ToByte(c.Y), ToByte(c.Z)))
 	}
-
+	file.Close()
 }

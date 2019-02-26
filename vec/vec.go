@@ -124,34 +124,3 @@ func Cross(a, b *Vec) *Vec {
 func (a *Vec) Cross(b *Vec) *Vec {
 	return Cross(a, b)
 }
-
-func clamp(x float64) float64 {
-	if x < 0.0 {
-		return 0.0
-	} else if x > 1.0 {
-		return 1.0
-	}
-	return x
-}
-
-// Clamp see smallpt
-func (a *Vec) Clamp() *Vec {
-	a.X = clamp(a.X)
-	a.Y = clamp(a.Y)
-	a.Z = clamp(a.Z)
-	return a
-}
-
-// Clamp see smallpt (copy)
-func Clamp(a *Vec) *Vec {
-	return a.Copy().Clamp()
-}
-
-func toByte(x float64) byte {
-	return byte(math.Pow(clamp(x), 1/2.2)*255 + 0.5)
-}
-
-// PPM ppm format string
-func (a *Vec) PPM() string {
-	return fmt.Sprintf("%v %v %v ", toByte(a.X), toByte(a.Y), toByte(a.Z))
-}

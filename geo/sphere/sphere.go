@@ -3,32 +3,21 @@ package sphere
 import (
 	"math"
 
-	"github.com/go-smallpt/geo"
-	"github.com/go-smallpt/ray"
-	"github.com/go-smallpt/vec"
+	"github.com/xalanq/go-smallpt/geo"
+	"github.com/xalanq/go-smallpt/ray"
 )
 
 // Sphere see smallpt
 type Sphere struct {
-	*geo.Geo
 	R float64
-}
-
-// NewZero new zero sphere
-func NewZero() *Sphere {
-	return &Sphere{}
+	*geo.Geo
 }
 
 // New new one
-func New(r float64, p, e, c *vec.Vec, t geo.ReflType) *Sphere {
+func New(r float64, g *geo.Geo) *Sphere {
 	return &Sphere{
-		R: r,
-		Geo: &geo.Geo{
-			Position: p,
-			Emission: e,
-			Color:    c,
-			Type:     t,
-		},
+		R:   r,
+		Geo: g,
 	}
 }
 

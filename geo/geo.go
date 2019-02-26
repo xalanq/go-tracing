@@ -1,8 +1,8 @@
 package geo
 
 import (
-	"github.com/go-smallpt/ray"
-	"github.com/go-smallpt/vec"
+	"github.com/xalanq/go-smallpt/ray"
+	"github.com/xalanq/go-smallpt/vec"
 )
 
 // ReflType reflection type
@@ -21,6 +21,16 @@ const (
 type Geo struct {
 	Position, Emission, Color *vec.Vec
 	Type                      ReflType
+}
+
+// New new one
+func New(position, emission, color *vec.Vec, tp ReflType) *Geo {
+	return &Geo{
+		Position: position,
+		Emission: emission,
+		Color:    color,
+		Type:     tp,
+	}
 }
 
 // GetGeo get geo itself

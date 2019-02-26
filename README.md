@@ -1,8 +1,13 @@
 # Go-Smallpt
 
-A go version of smallpt
+Small path tracing for go.
 
-see [smallpt](http://www.kevinbeason.com/smallpt/)
+Also see [smallpt](http://www.kevinbeason.com/smallpt/)
+
+# Feature
+
+* Render with go routine
+* More OOP
 
 # License
 

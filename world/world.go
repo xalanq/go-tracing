@@ -5,6 +5,7 @@ import (
 	"math"
 	"math/rand"
 	"sync"
+	"time"
 
 	"github.com/xalanq/go-smallpt/geo"
 	"github.com/xalanq/go-smallpt/pic"
@@ -124,11 +125,11 @@ func (a *World) Render(p *pic.Pic) *World {
 	cx := vec.New(fw*a.Ratio/fh, 0, 0)
 	cy := cx.Cross(a.Cam.Direct).Norm().Mult(a.Ratio)
 	sample := a.Sample / 4
-	sample = sample / a.Thread * a.Thread
 	inv := 1.0 / float64(sample)
 
-	fmt.Printf("w: %v, h: %v, sample: %v, thread: %v, actual sample: %v\n", w, h, a.Sample, a.Thread, sample/a.Thread*a.Thread*4)
+	fmt.Printf("w: %v, h: %v, sample: %v, thread: %v, actual sample: %v\n", w, h, a.Sample, a.Thread, sample*4)
 	bar := pb.StartNew(w * h)
+	bar.SetRefreshRate(2000 * time.Millisecond)
 
 	gend := func() float64 {
 		r := 2.0 * rand.Float64()
@@ -137,34 +138,39 @@ func (a *World) Render(p *pic.Pic) *World {
 		}
 		return 1 - math.Sqrt(2-r)
 	}
-	for y := 0; y < h; y++ {
-		for x := 0; x < w; x++ {
-			i := (h-y-1)*w + x
-			fx, fy := float64(x), float64(y)
-			for sy := 0.0; sy < 2.0; sy++ {
-				for sx := 0.0; sx < 2.0; sx++ {
-					c := vec.NewZero()
-					w := sync.WaitGroup{}
-					for pk, lim := 0, sample/a.Thread; pk < lim; pk++ {
-						for sp := 0; sp < a.Thread; sp++ {
-							w.Add(1)
-							go func() {
-								defer w.Done()
+	batch := h / a.Thread
+	wg := sync.WaitGroup{}
+	for trd := 0; trd < a.Thread; trd++ {
+		wg.Add(1)
+		go func(tid int) {
+			defer wg.Done()
+			end := batch * (tid + 1)
+			if end > h {
+				end = h
+			}
+			for y := batch * tid; y < end; y++ {
+				for x := 0; x < w; x++ {
+					i := (h-y-1)*w + x
+					fx, fy := float64(x), float64(y)
+					for sy := 0.0; sy < 2.0; sy++ {
+						for sx := 0.0; sx < 2.0; sx++ {
+							c := vec.NewZero()
+							for sp := 0; sp < sample; sp++ {
 								ccx := vec.Mult(cx, ((sx+0.5+gend())/2.0+fx)/fw-0.5)
 								ccy := vec.Mult(cy, ((sy+0.5+gend())/2.0+fy)/fh-0.5)
 								d := ccx.Add(ccy).Add(a.Cam.Direct)
 								r := ray.New(vec.Add(a.Cam.Origin, vec.Mult(d, 140)), vec.Norm(d))
 								c.Add(a.trace(r, 0).Mult(inv))
-							}()
+							}
+							p.C[i].Add(vec.New(pic.Clamp(c.X), pic.Clamp(c.Y), pic.Clamp(c.Z)).Mult(0.25))
 						}
-						w.Wait()
 					}
-					p.C[i].Add(vec.New(pic.Clamp(c.X), pic.Clamp(c.Y), pic.Clamp(c.Z)).Mult(0.25))
+					bar.Increment()
 				}
 			}
-			bar.Increment()
-		}
+		}(trd)
 	}
+	wg.Wait()
 
 	bar.FinishPrint("Rendering completed")
 	return a

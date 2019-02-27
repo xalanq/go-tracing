@@ -22,8 +22,8 @@ func main() {
 		Add(sphere.New(1e5, geo.New(vec.New(50, 1e5, 81.6), zero, c3, geo.Diffuse))).
 		Add(sphere.New(1e5, geo.New(vec.New(50, -1e5+81.6, 81.6), zero, c3, geo.Diffuse))).
 		Add(sphere.New(16.5, geo.New(vec.New(27, 16.5, 47), zero, c4, geo.Specular))).
-		Add(sphere.New(16.5, geo.New(vec.New(73, 16.5, 78), zero, c4, geo.Specular))).
+		Add(sphere.New(16.5, geo.New(vec.New(73, 16.5, 78), zero, c4, geo.Refractive))).
 		Add(sphere.New(600, geo.New(vec.New(50, 681.6-.27, 81.6), vec.New(12, 12, 12), zero, geo.Diffuse))).
 		Render(p)
-	p.SavePPM("example_1.png")
+	p.SavePPM("example_1.ppm")
 }

@@ -126,7 +126,7 @@ func (a *World) Render(p *pic.Pic) *World {
 	sample := a.Sample / 4
 	inv := 1.0 / float64(sample)
 
-	fmt.Printf("w: %v, h: %v, sample: %v", w, h, a.Sample)
+	fmt.Printf("w: %v, h: %v, sample: %v\n", w, h, a.Sample)
 	bar := pb.StartNew(w * h)
 
 	gend := func() float64 {
@@ -139,10 +139,10 @@ func (a *World) Render(p *pic.Pic) *World {
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
 			i := (h-y-1)*w + x
-			c := vec.NewZero()
 			fx, fy := float64(x), float64(y)
 			for sy := 0.0; sy < 2.0; sy++ {
 				for sx := 0.0; sx < 2.0; sx++ {
+					c := vec.NewZero()
 					for sp := 0; sp < sample; sp++ {
 						ccx := vec.Mult(cx, ((sx+0.5+gend())/2.0+fx)/fw-0.5)
 						ccy := vec.Mult(cy, ((sy+0.5+gend())/2.0+fy)/fh-0.5)
@@ -150,13 +150,13 @@ func (a *World) Render(p *pic.Pic) *World {
 						r := ray.New(vec.Add(a.Cam.Origin, vec.Mult(d, 140)), vec.Norm(d))
 						c.Add(a.trace(r, 0).Mult(inv))
 					}
+					p.C[i].Add(vec.New(pic.Clamp(c.X), pic.Clamp(c.Y), pic.Clamp(c.Z)).Mult(0.25))
 				}
 			}
-			p.C[i].Add(vec.New(pic.Clamp(c.X), pic.Clamp(c.Y), pic.Clamp(c.Z)).Mult(0.25))
 			bar.Increment()
 		}
 	}
 
-	bar.FinishPrint("Done")
+	bar.FinishPrint("Rendering completed")
 	return a
 }

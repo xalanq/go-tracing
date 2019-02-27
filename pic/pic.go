@@ -32,16 +32,18 @@ func Clamp(x float64) float64 {
 
 // ToByte 0~1 pixel value to 0~255 value through Gamma Correction
 func ToByte(x float64) byte {
-	return byte(math.Pow(Clamp(x), 1/2.2)*255 + 0.5)
+	return byte(math.Pow(Clamp(x), 1.0/2.2)*255 + 0.5)
 }
 
 // SavePPM save as .ppm
 func (a *Pic) SavePPM(filename string) {
 	file, _ := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0666)
 	writer := bufio.NewWriter(file)
+	fmt.Printf("Writing to %v\n", filename)
 	writer.WriteString(fmt.Sprintf("P3\n%d %d\n255\n", a.W, a.H))
 	for _, c := range a.C {
 		writer.WriteString(fmt.Sprintf("%v %v %v ", ToByte(c.X), ToByte(c.Y), ToByte(c.Z)))
 	}
 	file.Close()
+	fmt.Println("Done.")
 }

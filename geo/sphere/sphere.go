@@ -5,6 +5,7 @@ import (
 
 	"github.com/xalanq/go-smallpt/geo"
 	"github.com/xalanq/go-smallpt/ray"
+	"github.com/xalanq/go-smallpt/vec"
 )
 
 // Sphere see smallpt
@@ -23,7 +24,7 @@ func New(r float64, g *geo.Geo) *Sphere {
 
 // Hit intersect
 func (s *Sphere) Hit(r *ray.Ray) float64 {
-	op := s.Position.Sub(r.Origin)
+	op := vec.Sub(s.Position, r.Origin)
 	b := op.Dot(r.Direct)
 	det := b*b - op.Len2() + s.R*s.R
 	if det < 0.0 {

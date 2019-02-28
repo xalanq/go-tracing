@@ -1,8 +1,8 @@
 package geo
 
 import (
-	"github.com/xalanq/go-smallpt/ray"
-	"github.com/xalanq/go-smallpt/vec"
+	"github.com/xalanq/go-tracing/ray"
+	"github.com/xalanq/go-tracing/vec"
 )
 
 // ReflType reflection type

@@ -3,9 +3,9 @@ package sphere
 import (
 	"math"
 
-	"github.com/xalanq/go-smallpt/geo"
-	"github.com/xalanq/go-smallpt/ray"
-	"github.com/xalanq/go-smallpt/vec"
+	"github.com/xalanq/go-tracing/geo"
+	"github.com/xalanq/go-tracing/ray"
+	"github.com/xalanq/go-tracing/vec"
 )
 
 // Sphere see smallpt

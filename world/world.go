@@ -8,10 +8,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/xalanq/go-smallpt/geo"
-	"github.com/xalanq/go-smallpt/pic"
-	"github.com/xalanq/go-smallpt/ray"
-	"github.com/xalanq/go-smallpt/vec"
+	"github.com/xalanq/go-tracing/geo"
+	"github.com/xalanq/go-tracing/pic"
+	"github.com/xalanq/go-tracing/ray"
+	"github.com/xalanq/go-tracing/vec"
 	pb "gopkg.in/cheggaaa/pb.v1"
 )
 

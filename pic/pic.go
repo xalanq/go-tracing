@@ -6,7 +6,7 @@ import (
 	"math"
 	"os"
 
-	"github.com/xalanq/go-smallpt/vec"
+	"github.com/xalanq/go-tracing/vec"
 )
 
 // Pic store pixel

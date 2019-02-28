@@ -1,6 +1,6 @@
 package ray
 
-import "github.com/xalanq/go-smallpt/vec"
+import "github.com/xalanq/go-tracing/vec"
 
 // Ray ray
 type Ray struct {

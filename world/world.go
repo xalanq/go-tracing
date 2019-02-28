@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"math/rand"
+	"runtime"
 	"sync"
 	"time"
 
@@ -24,8 +25,11 @@ type World struct {
 	n1, n2                   float64
 }
 
-// New new one
+// New new one (thread is no more than cpu core)
 func New(cam *ray.Ray, sample, maxDepth, thread int, na, ng, ratio float64) *World {
+	if thread > runtime.NumCPU() {
+		thread = runtime.NumCPU()
+	}
 	return &World{
 		Cam:      cam,
 		Sample:   sample,
@@ -43,8 +47,7 @@ func (a *World) Add(obj geo.Hittable) *World {
 
 func (a *World) find(r *ray.Ray) (obj geo.Hittable, g *geo.Geo, pos *vec.Vec, norm *vec.Vec) {
 	t := math.MaxFloat64
-	for i := len(a.Objs) - 1; i >= 0; i-- {
-		o := a.Objs[i]
+	for _, o := range a.Objs {
 		if d := o.Hit(r); d != 0.0 && d < t {
 			obj, t = o, d
 		}
@@ -57,20 +60,37 @@ func (a *World) find(r *ray.Ray) (obj geo.Hittable, g *geo.Geo, pos *vec.Vec, no
 	return
 }
 
+func max3(a, b, c float64) float64 {
+	if a > b && a > c {
+		return a
+	}
+	if b > c {
+		return b
+	}
+	return c
+}
+
+func abs(x float64) float64 {
+	if x < 0 {
+		return x
+	}
+	return x
+}
+
 func (a *World) trace(r *ray.Ray, depth int) *vec.Vec {
 	obj, g, pos, norm := a.find(r)
 	if obj == nil {
 		return vec.NewZero()
 	}
-	c := g.Color.Copy()
+	cl := g.Color.Copy()
 	if depth++; depth > a.MaxDepth {
-		if p := math.Max(math.Max(c.X, c.Y), c.Z); rand.Float64() < p {
-			c.Mult(1.0 / p)
+		if p := max3(cl.X, cl.Y, cl.Z); rand.Float64() < p {
+			cl.Mult(1.0 / p)
 		} else {
 			return g.Emission.Copy()
 		}
 	}
-	return vec.Add(g.Emission, c.Mul(func() *vec.Vec {
+	return vec.Add(g.Emission, cl.Mul(func() *vec.Vec {
 		if g.Type == geo.Specular {
 			d := vec.Sub(r.Direct, norm.Mult(2.0*norm.Dot(r.Direct)))
 			return a.trace(ray.New(pos, d), depth)
@@ -83,15 +103,16 @@ func (a *World) trace(r *ray.Ray, depth int) *vec.Vec {
 			r1, r2 := 2.0*math.Pi*rand.Float64(), rand.Float64()
 			r2s := math.Sqrt(r2)
 			u := vec.New(1.0, 0.0, 0.0)
-			if math.Abs(w.X) > 0.1 {
+			if abs(w.X) > 0.1 {
 				u.X, u.Y = 0.0, 1.0
 			}
+			u = u.Cross(w).Norm()
 			v := w.Cross(u)
 			d := u.Mult(math.Cos(r1) * r2s).Add(v.Mult(math.Sin(r1) * r2s)).Add(w.Mult(math.Sqrt(1 - r2))).Norm()
 			return a.trace(ray.New(pos, d), depth)
 		}
 		refl := ray.New(pos, vec.Sub(r.Direct, vec.Mult(norm, 2.0*norm.Dot(r.Direct))))
-		out, ddw, n, cos2t, sign := norm.Dot(w) <= 0, r.Direct.Dot(w), a.n1, 0.0, 1.0
+		out, ddw, n, cos2t, sign := norm.Dot(w) <= 0.0, r.Direct.Dot(w), a.n1, 0.0, 1.0
 		if out {
 			n, sign = a.n2, -1.0
 		}
@@ -100,7 +121,8 @@ func (a *World) trace(r *ray.Ray, depth int) *vec.Vec {
 		}
 		td := vec.Mult(r.Direct, n).Sub(vec.Mult(norm, sign*(ddw*n+math.Sqrt(cos2t)))).Norm()
 		refr := ray.New(pos, td)
-		R0, c := (a.Na-a.Ng)*(a.Na-a.Ng)/((a.Na+a.Ng)*(a.Na+a.Ng)), 1.0+ddw
+		t1, t2 := a.Na-a.Ng, a.Na+a.Ng
+		R0, c := (t1*t1)/(t2*t2), 1.0+ddw
 		if out {
 			c = 1.0 - td.Dot(norm)
 		}
@@ -108,13 +130,12 @@ func (a *World) trace(r *ray.Ray, depth int) *vec.Vec {
 		Tr := 1.0 - Re
 		if depth > 2 {
 			P := 0.25 + 0.5*Re
-			RP, TP := Re/P, Tr/(1.0-P)
 			if rand.Float64() < P {
-				return a.trace(refl, depth).Mult(RP)
+				return a.trace(refl, depth).Mult(Re / P)
 			}
-			return a.trace(refr, depth).Mult(TP)
+			return a.trace(refr, depth).Mult(Tr / (1.0 - P))
 		}
-		return a.trace(refl, depth).Add(a.trace(refr, depth)).Mult(Tr)
+		return a.trace(refl, depth).Mult(Re).Add(a.trace(refr, depth).Mult(Tr))
 	}()))
 }
 
@@ -129,7 +150,7 @@ func (a *World) Render(p *pic.Pic) *World {
 
 	fmt.Printf("w: %v, h: %v, sample: %v, thread: %v, actual sample: %v\n", w, h, a.Sample, a.Thread, sample*4)
 	bar := pb.StartNew(w * h)
-	bar.SetRefreshRate(2000 * time.Millisecond)
+	bar.SetRefreshRate(1000 * time.Millisecond)
 
 	gend := func() float64 {
 		r := 2.0 * rand.Float64()
@@ -140,6 +161,7 @@ func (a *World) Render(p *pic.Pic) *World {
 	}
 	batch := h / a.Thread
 	wg := sync.WaitGroup{}
+	runtime.GOMAXPROCS(a.Thread)
 	for trd := 0; trd < a.Thread; trd++ {
 		wg.Add(1)
 		go func(tid int) {

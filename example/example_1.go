@@ -17,7 +17,7 @@ func main() {
 	cam := ray.New(vec.New(50, 52, 295.6), vec.New(0, -0.042612, -1).Norm())
 	sample := 200
 	depth := 5
-	thread := 3
+	thread := 4 // no more than number of cpu core
 	world.New(cam, sample, depth, thread, 1.0, 1.5, 0.5135).
 		Add(sphere.New(1e5, geo.New(vec.New(1e5+1, 40.8, 81.6), zero, c1, geo.Diffuse))).
 		Add(sphere.New(1e5, geo.New(vec.New(-1e5+99, 40.8, 81.6), zero, c2, geo.Diffuse))).

@@ -148,7 +148,7 @@ func (a *World) Render(p *pic.Pic) *World {
 	sample := a.Sample / 4
 	inv := 1.0 / float64(sample)
 
-	fmt.Printf("w: %v, h: %v, sample: %v, thread: %v, actual sample: %v\n", w, h, a.Sample, a.Thread, sample*4)
+	fmt.Printf("w: %v, h: %v, sample: %v, actual sample: %v, thread: %v, total cpu: %v\n", w, h, a.Sample, sample*4, a.Thread, runtime.NumCPU())
 	bar := pb.StartNew(w * h)
 	bar.SetRefreshRate(1000 * time.Millisecond)
 
@@ -181,7 +181,7 @@ func (a *World) Render(p *pic.Pic) *World {
 								ccx := vec.Mult(cx, ((sx+0.5+gend())/2.0+fx)/fw-0.5)
 								ccy := vec.Mult(cy, ((sy+0.5+gend())/2.0+fy)/fh-0.5)
 								d := ccx.Add(ccy).Add(a.Cam.Direct)
-								r := ray.New(vec.Add(a.Cam.Origin, vec.Mult(d, 140)), vec.Norm(d))
+								r := ray.New(vec.Add(a.Cam.Origin, vec.Mult(d, 130)), vec.Norm(d))
 								c.Add(a.trace(r, 0).Mult(inv))
 							}
 							p.C[i].Add(vec.New(pic.Clamp(c.X), pic.Clamp(c.Y), pic.Clamp(c.Z)).Mult(0.25))

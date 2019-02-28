@@ -17,23 +17,25 @@ import (
 
 // World store Geo objects
 type World struct {
-	Objs                     []geo.Hittable
-	Cam                      *ray.Ray
-	Sample, MaxDepth, Thread int
-	Ratio                    float64
-	Na, Ng                   float64 // refractive index of air and glass
-	n1, n2                   float64
+	Objs             []geo.Hittable
+	Cam              *ray.Ray
+	Sample, MaxDepth int
+	Core, Thread     int
+	Ratio            float64
+	Na, Ng           float64 // refractive index of air and glass
+	n1, n2           float64
 }
 
-// New new one (thread is no more than cpu core)
-func New(cam *ray.Ray, sample, maxDepth, thread int, na, ng, ratio float64) *World {
-	if thread > runtime.NumCPU() {
-		thread = runtime.NumCPU()
+// New new one (core is no more than runtime.NumCPU())
+func New(cam *ray.Ray, sample, maxDepth, core, thread int, na, ng, ratio float64) *World {
+	if core > runtime.NumCPU() {
+		core = runtime.NumCPU()
 	}
 	return &World{
 		Cam:      cam,
 		Sample:   sample,
 		MaxDepth: maxDepth,
+		Core:     core,
 		Thread:   thread,
 		Ratio:    ratio, Na: na, Ng: ng,
 		n1: na / ng, n2: ng / na}
@@ -139,6 +141,19 @@ func (a *World) trace(r *ray.Ray, depth int) *vec.Vec {
 	}()))
 }
 
+func gend() float64 {
+	r := 2.0 * rand.Float64()
+	if r < 1 {
+		return math.Sqrt(r) - 1
+	}
+	return 1 - math.Sqrt(2-r)
+}
+
+type renderData struct {
+	sum  *vec.Vec
+	x, y float64
+}
+
 // Render render !!! store in p
 func (a *World) Render(p *pic.Pic) *World {
 	h, w := p.H, p.W
@@ -148,50 +163,53 @@ func (a *World) Render(p *pic.Pic) *World {
 	sample := a.Sample / 4
 	inv := 1.0 / float64(sample)
 
-	fmt.Printf("w: %v, h: %v, sample: %v, actual sample: %v, thread: %v, total cpu: %v\n", w, h, a.Sample, sample*4, a.Thread, runtime.NumCPU())
-	bar := pb.StartNew(w * h)
+	fmt.Printf("w: %v, h: %v, sample: %v, actual sample: %v, thread: %v, cpu: %v\n", w, h, a.Sample, sample*4, a.Thread, a.Core)
+	bar := pb.StartNew(h * w)
 	bar.SetRefreshRate(1000 * time.Millisecond)
 
-	gend := func() float64 {
-		r := 2.0 * rand.Float64()
-		if r < 1 {
-			return math.Sqrt(r) - 1
-		}
-		return 1 - math.Sqrt(2-r)
-	}
-	batch := h / a.Thread
+	runtime.GOMAXPROCS(a.Core)
+	ch := make(chan *renderData, a.Thread)
 	wg := sync.WaitGroup{}
-	runtime.GOMAXPROCS(a.Thread)
-	for trd := 0; trd < a.Thread; trd++ {
-		wg.Add(1)
-		go func(tid int) {
-			defer wg.Done()
-			end := batch * (tid + 1)
-			if end > h {
-				end = h
-			}
-			for y := batch * tid; y < end; y++ {
-				for x := 0; x < w; x++ {
-					i := (h-y-1)*w + x
-					fx, fy := float64(x), float64(y)
-					for sy := 0.0; sy < 2.0; sy++ {
-						for sx := 0.0; sx < 2.0; sx++ {
-							c := vec.NewZero()
-							for sp := 0; sp < sample; sp++ {
-								ccx := vec.Mult(cx, ((sx+0.5+gend())/2.0+fx)/fw-0.5)
-								ccy := vec.Mult(cy, ((sy+0.5+gend())/2.0+fy)/fh-0.5)
-								d := ccx.Add(ccy).Add(a.Cam.Direct)
-								r := ray.New(vec.Add(a.Cam.Origin, vec.Mult(d, 130)), vec.Norm(d))
-								c.Add(a.trace(r, 0).Mult(inv))
-							}
-							p.C[i].Add(vec.New(pic.Clamp(c.X), pic.Clamp(c.Y), pic.Clamp(c.Z)).Mult(0.25))
-						}
-					}
-					bar.Increment()
+	wg.Add(a.Thread)
+
+	for tid := 0; tid < a.Thread; tid++ {
+		go func() {
+			for {
+				data, ok := <-ch
+				if !ok {
+					wg.Done()
+					return
 				}
+				sum, x, y := data.sum, data.x, data.y
+				for sy := 0.0; sy < 2.0; sy++ {
+					for sx := 0.0; sx < 2.0; sx++ {
+						c := vec.NewZero()
+						for sp := 0; sp < sample; sp++ {
+							ccx := vec.Mult(cx, ((sx+0.5+gend())/2.0+x)/fw-0.5)
+							ccy := vec.Mult(cy, ((sy+0.5+gend())/2.0+y)/fh-0.5)
+							d := ccx.Add(ccy).Add(a.Cam.Direct)
+							r := ray.New(vec.Add(a.Cam.Origin, vec.Mult(d, 130)), vec.Norm(d))
+							c.Add(a.trace(r, 0).Mult(inv))
+						}
+						sum.Add(vec.New(pic.Clamp(c.X), pic.Clamp(c.Y), pic.Clamp(c.Z)).Mult(0.25))
+					}
+				}
+				bar.Add(1)
 			}
-		}(trd)
+		}()
 	}
+
+	for y := 0; y < h; y++ {
+		for x := 0; x < w; x++ {
+			ch <- &renderData{
+				sum: &p.C[(h-y-1)*w+x],
+				x:   float64(x),
+				y:   float64(y),
+			}
+		}
+	}
+
+	close(ch)
 	wg.Wait()
 
 	bar.FinishPrint("Rendering completed")

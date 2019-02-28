@@ -11,6 +11,7 @@ A Go implement of path tracing in computer graphics.
 
 * Parallel: Render with goroutine
 * Structural: More OOP
+* Expandable: Easy to add a geometric object
 * Progress bar: Use [cheggaaa/pb.v2](https://github.com/cheggaaa/pb/tree/v2)
 
 # TO DO

@@ -3,12 +3,12 @@ package main
 import (
 	"runtime"
 
-	"github.com/xalanq/go-smallpt/geo"
-	"github.com/xalanq/go-smallpt/geo/sphere"
-	"github.com/xalanq/go-smallpt/pic"
-	"github.com/xalanq/go-smallpt/ray"
-	"github.com/xalanq/go-smallpt/vec"
-	"github.com/xalanq/go-smallpt/world"
+	"github.com/xalanq/go-tracing/geo"
+	"github.com/xalanq/go-tracing/geo/sphere"
+	"github.com/xalanq/go-tracing/pic"
+	"github.com/xalanq/go-tracing/ray"
+	"github.com/xalanq/go-tracing/vec"
+	"github.com/xalanq/go-tracing/world"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 	c3, c4 := vec.New(.75, .75, .75), vec.New(1, 1, 1).Mult(.999)
 	p := pic.New(1024, 768)
 	cam := ray.New(vec.New(50, 52, 295.6), vec.New(0, -0.042612, -1).Norm())
-	sample := 500
+	sample := 200
 	depth := 5
 	thread := runtime.NumCPU() // no more than number of cpu core
 	world.New(cam, sample, depth, thread, 1.0, 1.5, 0.5135).
@@ -31,5 +31,5 @@ func main() {
 		Add(sphere.New(16.5, geo.New(vec.New(73, 16.5, 78), zero, c4, geo.Refractive))).
 		Add(sphere.New(600, geo.New(vec.New(50, 681.6-.27, 81.6), vec.New(12, 12, 12), zero, geo.Diffuse))).
 		Render(p)
-	p.SavePPM("example_1.ppm")
+	p.SavePPM("example_200.ppm")
 }

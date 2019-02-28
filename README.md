@@ -19,6 +19,14 @@ A Go implement of path tracing in computer graphics.
 * Wait...for a faster GO??????????
 * Then....Add ray tracing and etc.
 
+# Installation
+
+`dep ensure -add github.com/xalanq/go-tracing`
+
+or
+
+`go get -u github.com/xalanq/go-tracing`
+
 # Usage
 
 ```Go

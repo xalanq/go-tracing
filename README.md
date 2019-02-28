@@ -5,13 +5,18 @@
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.6-green.svg)](https://github.com/golang)
 [![license](https://img.shields.io/badge/license-MIT-%23373737.svg)](https://raw.githubusercontent.com/xalanq/go-tracing/master/LICENSE)
 
-A Go implement of path tracing and ray tracing in computer graphics.
+A Go implement of path tracing in computer graphics.
 
 # Feature
 
-* Fast: Render with goroutine
+* Parallel: Render with goroutine
 * Structural: More OOP
 * Progress bar: Use [cheggaaa/pb.v2](https://github.com/cheggaaa/pb/tree/v2)
+
+# TO DO
+
+* Wait...for a faster GO??????????
+* Then....Add ray tracing and etc.
 
 # Usage
 

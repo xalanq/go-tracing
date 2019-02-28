@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/xalanq/go-tracing.svg?branch=master)](https://travis-ci.org/xalanq/go-tracing)
 [![Go Report Card](https://goreportcard.com/badge/github.com/xalanq/go-tracing)](https://goreportcard.com/report/github.com/xalanq/go-tracing)
-[![Go Version](https://img.shields.io/badge/go-%3E%3D1.5-green.svg)](https://github.com/golang)
+[![Go Version](https://img.shields.io/badge/go-%3E%3D1.6-green.svg)](https://github.com/golang)
 [![license](https://img.shields.io/badge/license-MIT-%23373737.svg)](https://raw.githubusercontent.com/xalanq/go-tracing/master/LICENSE)
 
 A Go implement of path tracing and ray tracing in computer graphics.

@@ -53,12 +53,12 @@ func main() {
 	}
 	zero := vec.NewZero()
 	c1, c2 := vec.New(.75, .25, .25), vec.New(.25, .25, .75)
-	c3, c4 := vec.New(.75, .75, .75), vec.New(1, 1, 1).Mult(.999)
+	c3, c4 := vec.New(.75, .75, .75), vec.Mult(vec.New(1, 1, 1), .999)
 	p := pic.New(1024, 768)
-	cam := ray.New(vec.New(50, 52, 295.6), vec.New(0, -0.042612, -1).Norm())
+	cam := ray.New(vec.New(50, 52, 295.6), vec.Norm(vec.New(0, -0.042612, -1)))
 	depth := 5
 	core := runtime.NumCPU()
-	thread := core * 8
+	thread := 3
 	world.New(cam, sample, depth, core, thread, 1.0, 1.5, 0.5135).
 		Add(sphere.New(1e5, geo.New(vec.New(1e5+1, 40.8, 81.6), zero, c1, geo.Diffuse))).
 		Add(sphere.New(1e5, geo.New(vec.New(-1e5+99, 40.8, 81.6), zero, c2, geo.Diffuse))).

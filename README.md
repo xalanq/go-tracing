@@ -5,7 +5,7 @@
 [![Go Version](https://img.shields.io/badge/go-%3E%3D1.6-green.svg)](https://github.com/golang)
 [![license](https://img.shields.io/badge/license-MIT-%23373737.svg)](https://raw.githubusercontent.com/xalanq/go-tracing/master/LICENSE)
 
-A Go implement of path tracing in computer graphics.
+A Go implementation of path tracing in computer graphics.
 
 # Feature
 

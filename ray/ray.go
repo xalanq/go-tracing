@@ -4,10 +4,10 @@ import "github.com/xalanq/go-tracing/vec"
 
 // Ray ray
 type Ray struct {
-	Origin, Direct *vec.Vec
+	Origin, Direct vec.Vec
 }
 
 // New new one
-func New(origin, direct *vec.Vec) *Ray {
-	return &Ray{Origin: origin, Direct: direct}
+func New(origin, direct vec.Vec) Ray {
+	return Ray{Origin: origin, Direct: direct}
 }

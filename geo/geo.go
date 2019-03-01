@@ -19,13 +19,13 @@ const (
 
 // Geo Geometric object
 type Geo struct {
-	Position, Emission, Color *vec.Vec
+	Position, Emission, Color vec.Vec
 	Type                      ReflType
 }
 
 // New new one
-func New(position, emission, color *vec.Vec, tp ReflType) *Geo {
-	return &Geo{
+func New(position, emission, color vec.Vec, tp ReflType) Geo {
+	return Geo{
 		Position: position,
 		Emission: emission,
 		Color:    color,
@@ -34,12 +34,12 @@ func New(position, emission, color *vec.Vec, tp ReflType) *Geo {
 }
 
 // GetGeo get geo itself
-func (g *Geo) GetGeo() *Geo {
+func (g Geo) GetGeo() Geo {
 	return g
 }
 
 // Hittable hittable object
 type Hittable interface {
-	GetGeo() *Geo
-	Hit(*ray.Ray) float64
+	GetGeo() Geo
+	Hit(ray.Ray) float64
 }

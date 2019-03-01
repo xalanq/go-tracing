@@ -18,7 +18,7 @@ import (
 // World store Geo objects
 type World struct {
 	Objs             []geo.Hittable
-	Cam              *ray.Ray
+	Cam              ray.Ray
 	Sample, MaxDepth int
 	Core, Thread     int
 	Ratio            float64
@@ -27,7 +27,7 @@ type World struct {
 }
 
 // New new one (core is no more than runtime.NumCPU())
-func New(cam *ray.Ray, sample, maxDepth, core, thread int, na, ng, ratio float64) *World {
+func New(cam ray.Ray, sample, maxDepth, core, thread int, na, ng, ratio float64) *World {
 	if core > runtime.NumCPU() {
 		core = runtime.NumCPU()
 	}
@@ -47,7 +47,7 @@ func (a *World) Add(obj geo.Hittable) *World {
 	return a
 }
 
-func (a *World) find(r *ray.Ray) (obj geo.Hittable, g *geo.Geo, pos *vec.Vec, norm *vec.Vec) {
+func (a *World) find(r ray.Ray) (obj geo.Hittable, g geo.Geo, pos, norm vec.Vec) {
 	t := math.MaxFloat64
 	for _, o := range a.Objs {
 		if d := o.Hit(r); d != 0.0 && d < t {
@@ -57,7 +57,7 @@ func (a *World) find(r *ray.Ray) (obj geo.Hittable, g *geo.Geo, pos *vec.Vec, no
 	if obj != nil {
 		g = obj.GetGeo()
 		pos = vec.Add(r.Origin, vec.Mult(r.Direct, t))
-		norm = vec.Sub(pos, g.Position).Norm()
+		norm = vec.Norm(vec.Sub(pos, g.Position))
 	}
 	return
 }
@@ -79,7 +79,7 @@ func abs(x float64) float64 {
 	return x
 }
 
-func (a *World) trace(r *ray.Ray, depth int) *vec.Vec {
+func (a *World) trace(r ray.Ray, depth int) vec.Vec {
 	obj, g, pos, norm := a.find(r)
 	if obj == nil {
 		return vec.NewZero()
@@ -92,9 +92,9 @@ func (a *World) trace(r *ray.Ray, depth int) *vec.Vec {
 			return g.Emission.Copy()
 		}
 	}
-	return vec.Add(g.Emission, cl.Mul(func() *vec.Vec {
+	return vec.Add(g.Emission, vec.Mul(cl, func() vec.Vec {
 		if g.Type == geo.Specular {
-			d := vec.Sub(r.Direct, norm.Mult(2.0*norm.Dot(r.Direct)))
+			d := vec.Sub(r.Direct, vec.Mult(norm, 2.0*norm.Dot(r.Direct)))
 			return a.trace(ray.New(pos, d), depth)
 		}
 		w := norm
@@ -108,9 +108,9 @@ func (a *World) trace(r *ray.Ray, depth int) *vec.Vec {
 			if abs(w.X) > 0.1 {
 				u.X, u.Y = 0.0, 1.0
 			}
-			u = u.Cross(w).Norm()
-			v := w.Cross(u)
-			d := u.Mult(math.Cos(r1) * r2s).Add(v.Mult(math.Sin(r1) * r2s)).Add(w.Mult(math.Sqrt(1 - r2))).Norm()
+			u = vec.Norm(vec.Cross(u, w))
+			v := vec.Cross(w, u)
+			d := vec.Norm(vec.Add(vec.Add(vec.Mult(u, math.Cos(r1)*r2s), vec.Mult(v, math.Sin(r1)*r2s)), vec.Mult(w, math.Sqrt(1-r2))))
 			return a.trace(ray.New(pos, d), depth)
 		}
 		refl := ray.New(pos, vec.Sub(r.Direct, vec.Mult(norm, 2.0*norm.Dot(r.Direct))))
@@ -121,7 +121,7 @@ func (a *World) trace(r *ray.Ray, depth int) *vec.Vec {
 		if cos2t = 1.0 - n*n*(1.0-ddw*ddw); cos2t < 0 {
 			return a.trace(refl, depth)
 		}
-		td := vec.Mult(r.Direct, n).Sub(vec.Mult(norm, sign*(ddw*n+math.Sqrt(cos2t)))).Norm()
+		td := vec.Norm(vec.Sub(vec.Mult(r.Direct, n), vec.Mult(norm, sign*(ddw*n+math.Sqrt(cos2t)))))
 		refr := ray.New(pos, td)
 		t1, t2 := a.Na-a.Ng, a.Na+a.Ng
 		R0, c := (t1*t1)/(t2*t2), 1.0+ddw
@@ -133,11 +133,11 @@ func (a *World) trace(r *ray.Ray, depth int) *vec.Vec {
 		if depth > 2 {
 			P := 0.25 + 0.5*Re
 			if rand.Float64() < P {
-				return a.trace(refl, depth).Mult(Re / P)
+				return vec.Mult(a.trace(refl, depth), Re/P)
 			}
-			return a.trace(refr, depth).Mult(Tr / (1.0 - P))
+			return vec.Mult(a.trace(refr, depth), Tr/(1.0-P))
 		}
-		return a.trace(refl, depth).Mult(Re).Add(a.trace(refr, depth).Mult(Tr))
+		return vec.Add(vec.Mult(a.trace(refl, depth), Re), vec.Mult(a.trace(refr, depth), Tr))
 	}()))
 }
 
@@ -159,7 +159,7 @@ func (a *World) Render(p *pic.Pic) *World {
 	h, w := p.H, p.W
 	fh, fw := float64(h), float64(w)
 	cx := vec.New(fw*a.Ratio/fh, 0, 0)
-	cy := cx.Cross(a.Cam.Direct).Norm().Mult(a.Ratio)
+	cy := vec.Mult(vec.Norm(vec.Cross(cx, a.Cam.Direct)), a.Ratio)
 	sample := a.Sample / 4
 	inv := 1.0 / float64(sample)
 
@@ -168,7 +168,7 @@ func (a *World) Render(p *pic.Pic) *World {
 	bar.SetRefreshRate(1000 * time.Millisecond)
 
 	runtime.GOMAXPROCS(a.Core)
-	ch := make(chan *renderData, a.Thread)
+	ch := make(chan renderData, a.Thread)
 	wg := sync.WaitGroup{}
 	wg.Add(a.Thread)
 
@@ -187,11 +187,11 @@ func (a *World) Render(p *pic.Pic) *World {
 						for sp := 0; sp < sample; sp++ {
 							ccx := vec.Mult(cx, ((sx+0.5+gend())/2.0+x)/fw-0.5)
 							ccy := vec.Mult(cy, ((sy+0.5+gend())/2.0+y)/fh-0.5)
-							d := ccx.Add(ccy).Add(a.Cam.Direct)
+							d := vec.Add(vec.Add(ccx, ccy), a.Cam.Direct)
 							r := ray.New(vec.Add(a.Cam.Origin, vec.Mult(d, 130)), vec.Norm(d))
-							c.Add(a.trace(r, 0).Mult(inv))
+							c.Add(vec.Mult(a.trace(r, 0), inv))
 						}
-						sum.Add(vec.New(pic.Clamp(c.X), pic.Clamp(c.Y), pic.Clamp(c.Z)).Mult(0.25))
+						sum.Add(vec.Mult(vec.New(pic.Clamp(c.X), pic.Clamp(c.Y), pic.Clamp(c.Z)), 0.25))
 					}
 				}
 				bar.Add(1)
@@ -201,7 +201,7 @@ func (a *World) Render(p *pic.Pic) *World {
 
 	for y := 0; y < h; y++ {
 		for x := 0; x < w; x++ {
-			ch <- &renderData{
+			ch <- renderData{
 				sum: &p.C[(h-y-1)*w+x],
 				x:   float64(x),
 				y:   float64(y),

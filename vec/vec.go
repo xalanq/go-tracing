@@ -11,18 +11,18 @@ type Vec struct {
 }
 
 // NewZero new zero vec
-func NewZero() *Vec {
-	return &Vec{}
+func NewZero() Vec {
+	return Vec{}
 }
 
 // New new vec
-func New(x, y, z float64) *Vec {
-	return &Vec{X: x, Y: y, Z: z}
+func New(x, y, z float64) Vec {
+	return Vec{X: x, Y: y, Z: z}
 }
 
 // Copy copy one
-func (a *Vec) Copy() *Vec {
-	return &Vec{X: a.X, Y: a.Y, Z: a.Z}
+func (a *Vec) Copy() Vec {
+	return Vec{X: a.X, Y: a.Y, Z: a.Z}
 }
 
 func (a *Vec) String() string {
@@ -30,7 +30,7 @@ func (a *Vec) String() string {
 }
 
 // Add a + b
-func (a *Vec) Add(b *Vec) *Vec {
+func (a *Vec) Add(b Vec) *Vec {
 	a.X += b.X
 	a.Y += b.Y
 	a.Z += b.Z
@@ -38,12 +38,12 @@ func (a *Vec) Add(b *Vec) *Vec {
 }
 
 // Add a + b (copy)
-func Add(a, b *Vec) *Vec {
-	return a.Copy().Add(b)
+func Add(a, b Vec) Vec {
+	return *a.Add(b)
 }
 
 // Sub a - b
-func (a *Vec) Sub(b *Vec) *Vec {
+func (a *Vec) Sub(b Vec) *Vec {
 	a.X -= b.X
 	a.Y -= b.Y
 	a.Z -= b.Z
@@ -51,12 +51,12 @@ func (a *Vec) Sub(b *Vec) *Vec {
 }
 
 // Sub a - b (copy)
-func Sub(a, b *Vec) *Vec {
-	return a.Copy().Sub(b)
+func Sub(a, b Vec) Vec {
+	return *a.Sub(b)
 }
 
 // Mul (a.X * b.X, a.Y * b.Y, a.Z * b.Z)
-func (a *Vec) Mul(b *Vec) *Vec {
+func (a *Vec) Mul(b Vec) *Vec {
 	a.X *= b.X
 	a.Y *= b.Y
 	a.Z *= b.Z
@@ -64,8 +64,8 @@ func (a *Vec) Mul(b *Vec) *Vec {
 }
 
 // Mul (a.X * b.X, a.Y * b.Y, a.Z * b.Z) (copy)
-func Mul(a, b *Vec) *Vec {
-	return a.Copy().Mul(b)
+func Mul(a, b Vec) Vec {
+	return *a.Mul(b)
 }
 
 // Mult (a.X * t, a.Y * t, a.Z * t)
@@ -77,23 +77,23 @@ func (a *Vec) Mult(t float64) *Vec {
 }
 
 // Mult (a.X * t, a.Y * t, a.Z * t) (copy)
-func Mult(a *Vec, t float64) *Vec {
-	return a.Copy().Mult(t)
+func Mult(a Vec, t float64) Vec {
+	return *a.Mult(t)
 }
 
 // Dot a.X*b.X + a.Y*b.Y + a.Z*b.Z
-func Dot(a, b *Vec) float64 {
+func Dot(a, b Vec) float64 {
 	return a.X*b.X + a.Y*b.Y + a.Z*b.Z
 }
 
 // Dot a.X*b.X + a.Y*b.Y + a.Z*b.Z
-func (a *Vec) Dot(b *Vec) float64 {
-	return Dot(a, b)
+func (a *Vec) Dot(b Vec) float64 {
+	return Dot(*a, b)
 }
 
 // Len2 (length of a) ^ 2
 func (a *Vec) Len2() float64 {
-	return a.Dot(a)
+	return a.Dot(*a)
 }
 
 // Len length of a
@@ -107,13 +107,13 @@ func (a *Vec) Norm() *Vec {
 }
 
 // Norm normalize length to 1 (copy)
-func Norm(a *Vec) *Vec {
-	return a.Copy().Norm()
+func Norm(a Vec) Vec {
+	return *a.Norm()
 }
 
 // Cross cross (copy)
-func Cross(a, b *Vec) *Vec {
-	return &Vec{
+func Cross(a, b Vec) Vec {
+	return Vec{
 		X: a.Y*b.Z - a.Z*b.Y,
 		Y: a.Z*b.X - a.X*b.Z,
 		Z: a.X*b.Y - a.Y*b.X,
@@ -121,6 +121,6 @@ func Cross(a, b *Vec) *Vec {
 }
 
 // Cross cross (copy)
-func (a *Vec) Cross(b *Vec) *Vec {
-	return Cross(a, b)
+func (a *Vec) Cross(b Vec) Vec {
+	return Cross(*a, b)
 }
